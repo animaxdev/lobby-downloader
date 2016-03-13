@@ -1,2 +1,3 @@
 # lobby-downloader
-A High Speed file downloader
+
+A High Speed File Download Manager
