@@ -1,6 +1,8 @@
 $.extend(lobby.app, {
   refresh: function(){
-    
+    lobby.app.ajax("downloads.php", {}, function(d){
+      $(".workspace #downloads").replaceWith(d);
+    });
   }
 });
 
@@ -14,7 +16,7 @@ lobby.load(function(){
   
   $("#newDownloadDialog form").live("submit", function(e){
     e.preventDefault();
-    lobby.app.ajax("add-download.php", $(this).serializeForm(), function(d){
+    lobby.app.ajax("new-download.php", $(this).serializeArray(), function(d){
       if(d != "bad"){
         lobby.app.refresh();
       }
