@@ -1,9 +1,17 @@
 $.extend(lobby.app, {
+  
+  init: function(){
+    lobby.app.ajax("init.php", {}, function(){
+      
+    });
+  },
+  
   refresh: function(){
     lobby.app.ajax("downloads.php", {}, function(d){
       $(".workspace #downloads").replaceWith(d);
     });
   }
+  
 });
 
 lobby.load(function(){
@@ -23,4 +31,5 @@ lobby.load(function(){
     });
   });
   
+  lobby.app.init();
 });

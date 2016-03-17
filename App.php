@@ -20,14 +20,31 @@ class downloader extends \Lobby\App {
     $this->download($dName);
   }
   
-  public function download($callback){
+  public function download($dName){
+    $dInfo = getJSONData($dName);
+    $url = $dInfo['url'];
+    
     $curlOptions = array(
       CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.2.12) Gecko/20101026 Firefox/3.6.12',
-      CURLOPT_NOPROGRESS => false
-      CURLOPT_PROGRESSFUNCTION => function($progress){
-        
+      CURLOPT_NOPROGRESS => false,
+      CURLOPT_PROGRESSFUNCTION => function($resource, $download_size, $downloaded, $upload_size, $uploaded = "") use($dName) {
+        /**
+         * On new versions of cURL, $resource parameter is not passed
+         * So, swap vars if it doesn't exist
+         */
+        if(!is_resource($resource)){
+          $uploaded = $upload_size;
+          $upload_size = $downloaded;
+          $downloaded = $download_size;
+          $download_size = $resource;
+        }
+        saveJSONData($dName, array(
+          "size" => $download_size,
+          "downloaded" => $downloaded
+        ));
       }
     );
+    
     $mrHandler = new \MultiRequest\Handler();
     $mrHandler->setConnectionsLimit(1000);
     $mrHandler->onRequestComplete($callback);
@@ -36,13 +53,13 @@ class downloader extends \Lobby\App {
     $Session = new \MultiRequest\Session($mrHandler, '/tmp');
     $Session->start();
     
-    foreach($urls as $url) {
-      $request = new \MultiRequest\Request($url);
-      $request->addCurlOptions($curlOptions);
-      $Session->request($request);
-      //$mrHandler->pushRequestToQueue($request);
-    }
+    $request = new \MultiRequest\Request($url);
+    $request->addCurlOptions($curlOptions);
+    $Session->request($request);
+    //$mrHandler->pushRequestToQueue($request);
+
     $mrHandler->start();
+    saveData("download_active", 1);
   }
 
 }
