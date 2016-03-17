@@ -1,5 +1,6 @@
 <?php
 $this->addScript("app.js");
+$this->addStyle("app.css");
 ?>
 <div class="contents">
   <h1>Downloader</h1>
@@ -12,6 +13,15 @@ $this->addScript("app.js");
     <label>
       <span>Download URL</span>
       <input type="text" name="downloadURL" />
+    </label>
+    <label>
+      <span>Download To</span>
+      <div class="row">
+        <div class="col s8">
+        <input type="text" name="downloadPath" id="dLoc"  value="<?php echo getData("downloadsDir");?>" />
+        </div>
+        <a id="chooseDLoc" class="btn orange col s4">Choose Path</a>
+      </div>
     </label>
     <button class="btn green">Start Download</button>
   </form>

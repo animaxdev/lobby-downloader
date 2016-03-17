@@ -1,0 +1,12 @@
+.card{
+  position: relative;
+  overflow: hidden;
+}
+.card #removeDownload{
+  background: url(<?APP_SRC?>/src/image/close.svg);
+  position: absolute;
+  height: 20px;
+  width: 20px;
+  right: 0.5em;
+  top: 0.5em;
+}

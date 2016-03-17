@@ -1,11 +1,10 @@
 <?php
 $url = \H::i("downloadURL", "", "POST");
+$dDir = \H::i("downloadPath", "", "POST");
 
-if($url != ""){
+if($url != "" && $dDir != ""){
   $file_headers = @get_headers($url);
-  var_dump($file_headers);
   if($file_headers[0] != 'HTTP/1.1 404 Not Found') {
-    $this->addDownload($url);
+    $this->addDownload($url, $dDir);
   }
-  
 }

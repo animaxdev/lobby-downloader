@@ -31,5 +31,24 @@ lobby.load(function(){
     });
   });
   
+  $("#newDownloadDialog #chooseDLoc").live("click", function() {
+    lobby.mod.FilePicker("/", function(result) {
+      $("#newDownloadDialog #dLoc").val(result.dir);
+      lobby.app.save("downloadsDir", result.dir);
+    });
+  });
+  
+  $(".card #removeDownload").live("click", function(){
+    t = $(this).parents(".card");
+    n = t.data("id");
+    lobby.app.ajax("remove-download.php", {downloadName: n}, function(r){
+      if(r !== "bad"){
+        t.fadeOut(1000, function(){
+          t.remove();
+        });
+      }
+    });
+  });
+  
   lobby.app.init();
 });
