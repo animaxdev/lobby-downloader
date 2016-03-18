@@ -1,22 +1,34 @@
 <?php
-if(!function_exists("getData")){
-  require_once __DIR__ . "/../../../../../load.php";
-  
-}
 /**
  * Start Downloads if not started
  */
-if(getData("download_active") === null){
-  set_time_limit(0);
-  
+if(!$this->isDownloadRunning()){
+  /**
+   * The downloads to do
+   */
   $doDs = array();
+  
+  /**
+   * The existing downloads
+   */
   $ds = array_keys(getJSONData("downloads"));
   foreach($ds as $dName){
     $dInfo = getJSONData($dName);
-    if($dInfo['paused'] == "0"){
+    if($dInfo['paused'] === "0" && $dInfo['percentage'] != "100"){
       $doDs[$dName] = $dInfo;
     }
   }
-  $this->download($doDs);
-  system(PHP_BINARY . " ".__FILE__);
+  
+  if(count($doDs) !== 0){
+    $doDsJSON = json_encode($doDs);
+    exec($this->getPHPExecutable() ." '". __DIR__ ."/background-download.php' '". APP_URL ."/receive-status' '$doDsJSON' > " . __DIR__ . "/d.txt &");
+    echo json_encode(array(
+      "status" => "started",
+      "active" => array_keys($doDs)
+    ));
+  }
+}else{
+  echo json_encode(array(
+    "status" => "running"
+  ));
 }

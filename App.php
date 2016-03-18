@@ -3,72 +3,89 @@ namespace Lobby\App;
 
 class downloader extends \Lobby\App {
 
+  public $downloadStatusFile = "";
+
   public function page($p){
-    require_once APP_DIR . "/src/lib/vendor/autoload.php";
-    return "auto";
+    $this->downloadStatusFile = APP_DIR . "/src/data/download-status.txt";
+    
+    if($p === "/receive-status" && isset($_POST['status'])){
+      $ds = json_decode(\H::i("status"), true);
+      foreach($ds as $dName => $dInfo){
+        saveJSONData($dName, $dInfo);
+      }
+      saveData("lastDownloadStatusCheck", time());
+    }else{
+      return "auto";
+    }
   }
   
   /**
    * Add a download
    */
-  public function addDownload($url, $dDir){
+  public function addDownload($url, $fileName, $dDir){
     /**
      * Make an ID
      */
     $dName = md5($url . rand(0, 1000));
     
     \H::saveJSONData($dName, array(
-      "url" => $url,
       "downloaded" => "0",
+      "downloadDir" => $dDir,
+      "error" => "0",
+      
+      /**
+       * Estimated time to complete download
+       * ETA - Estimated Time to Arrive
+       * ETA is calculated on basis of average speed and not current speed
+       */
+      "eta" => "0",
+      
+      "fileName" => $fileName,
+      
+      "percentage" => "0",
       "paused" => "0",
-      "downloadDir" => $dDir
+      "size" => 1,
+      
+      /**
+       * The current speed of download, not average speed
+       */
+      "speed" => "0",
+      "url" => $url
     ));
     \H::saveJSONData("downloads", array(
       $dName => 1
     ));
   }
   
-  public function download($ds){
-    $mrHandler = new \MultiRequest\Handler();
-    $mrHandler->setConnectionsLimit(1000);
-    
-    $Session = new \MultiRequest\Session($mrHandler, '/tmp');
-    $Session->start();
-    foreach($ds as $dName => $dInfo) {
-      $url = $dInfo['url'];
-      $curlOptions = array(
-        CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.2.12) Gecko/20101026 Firefox/3.6.12',
-        CURLOPT_NOPROGRESS => false,
-        CURLOPT_PROGRESSFUNCTION => function($resource, $download_size, $downloaded, $upload_size, $uploaded = "") use($dName) {
-          /**
-           * On new versions of cURL, $resource parameter is not passed
-           * So, swap vars if it doesn't exist
-           */
-          if(!is_resource($resource)){
-            $uploaded = $upload_size;
-            $upload_size = $downloaded;
-            $downloaded = $download_size;
-            $download_size = $resource;
-          }
-          saveJSONData($dName, array(
-            "size" => $download_size,
-            "downloaded" => $downloaded
-          ));
-        }
-      );
-      $request = new \MultiRequest\Request($url);
-      $request->addCurlOptions($curlOptions);
-      $request->onComplete(function(\MultiRequest\Request $request, \MultiRequest\Handler $handler) use($dInfo) {
-        $filename = preg_replace('/[^\w\.]/', '', $request->getUrl());
-        file_put_contents($dInfo['downloadDir'] . DIRECTORY_SEPARATOR . $filename, $request->getContent());
-        saveData("download_active", "0");
-      });
-      
-      //$Session->request($request);
-	    $mrHandler->pushRequestToQueue($request);
+  public function isDownloadRunning(){
+    if (getData("lastDownloadStatusCheck") < strtotime("-1 second")) {
+      return false;
+    }else{
+      return true;
     }
-    $mrHandler->start();
-    //saveData("download_active", 1);
+  }
+  
+  public function getPHPExecutable() {
+    $paths = explode(PATH_SEPARATOR, getenv('PATH'));
+    foreach ($paths as $path) {
+      // we need this for XAMPP (Windows)
+      if (strstr($path, 'php.exe') && isset($_SERVER["WINDIR"]) && file_exists($path) && is_file($path)) {
+        return $path;
+      }else {
+        $php_executable = $path . DIRECTORY_SEPARATOR . "php" . (isset($_SERVER["WINDIR"]) ? ".exe" : "");
+        if (file_exists($php_executable) && is_file($php_executable)) {
+          return $php_executable;
+        }
+      }
+    }
+    return FALSE; // not found
+  }
+  
+  public function convertToReadableSize($size){
+    $base = log($size) / log(1024);
+    $suffix = array("", "KB", "M", "G", "T");
+    $f_base = floor($base);
+    return round(pow(1024, $base - floor($base)), 1) . $suffix[$f_base];
   }
 
 }
