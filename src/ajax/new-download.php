@@ -4,7 +4,7 @@ $dDir = \H::i("downloadPath", "", "POST");
 
 if($url != "" && $dDir != ""){
   $file_headers = @get_headers($url);
-  if($file_headers[0] == 'HTTP/1.1 404 Not Found') {
+  if($file_headers == false || $file_headers[0] == 'HTTP/1.1 404 Not Found') {
     echo "urlNotFound";
   }else{
     $p = parse_url($url);

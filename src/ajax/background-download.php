@@ -14,7 +14,12 @@ if(isset($argv[1])){
     curl_setopt($ch, CURLOPT_POSTFIELDS, "status=" . json_encode($newDs));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     
-    $server_output = curl_exec ($ch);
+    $server_output = curl_exec($ch);
+    if($server_output == "cancelled" || $server_output == "paused"){
+      $keys = array_keys($newDs);
+      $dName = $keys[0];
+      $GLOBALS["curlCancel$dName"] = 1;
+    }
     curl_close ($ch);
   }
   
@@ -24,7 +29,10 @@ if(isset($argv[1])){
   $mrHandler->setConnectionsLimit(1000);
   
   $GLOBALS['startTime'] = $GLOBALS['prevTime'] = microtime(true);
-  $GLOBALS['prevSize'] = $GLOBALS['currentSpeed'] = $GLOBALS['timeRemaining'] = 0;
+  $GLOBALS['prevSize'] = $GLOBALS['currentSpeed'] = $GLOBALS['timeRemaining'] = $GLOBALS['alreadyDownloaded'] = 0;
+  
+  $curlResult = array();
+  
   foreach($ds as $dName => $dInfo) {
     $url = $dInfo['url'];
     $savePath = $dInfo['downloadDir'] . DIRECTORY_SEPARATOR . $dInfo['fileName'];
@@ -34,7 +42,9 @@ if(isset($argv[1])){
     $curlOptions = array(
       CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.2.12) Gecko/20101026 Firefox/3.6.12',
       CURLOPT_NOPROGRESS => false,
-      CURLOPT_PROGRESSFUNCTION => function($resource, $download_size, $downloaded, $upload_size, $uploaded = "") use($dName) {
+      CURLOPT_FOLLOWLOCATION => 1,
+      CURLOPT_BINARYTRANSFER => true,
+      CURLOPT_PROGRESSFUNCTION => function($resource, $downloadSize, $downloaded, $upload_size, $uploaded = "") use($dName) {
         /**
          * On new versions of cURL, $resource parameter is not passed
          * So, swap vars if it doesn't exist
@@ -42,21 +52,30 @@ if(isset($argv[1])){
         if(!is_resource($resource)){
           $uploaded = $upload_size;
           $upload_size = $downloaded;
-          $downloaded = $download_size;
-          $download_size = $resource;
-        }
-        if($downloaded > 0 && $download_size > 0){
-          $percentage = ($downloaded / $download_size) * 100;
-        }else{
-          $percentage = 0;
+          $downloaded = $downloadSize;
+          $downloadSize = $resource;
         }
         
         $dInfo = array(
-          "downloaded" => $downloaded,
-          "error" => "0",
-          "percentage" => $percentage,
-          "size" => $download_size
+          "error" => "0"
         );
+        
+        if($downloaded > 0 && $downloadSize > 0){
+          /**
+           * If the file is resumed for download, then the
+           * $downloaded and $downloadSize will be the difference
+           * of the actual file size - partially downloaded file size
+           * So, to get the actual file size, we must add the
+           * partial file size to it.
+           * $GLOBALS['alreadyDownloaded'] = partial file size
+           */
+          $downloaded = $GLOBALS['alreadyDownloaded'] + $downloaded;
+          $downloadSize = $GLOBALS['alreadyDownloaded'] + $downloadSize;
+          
+          $dInfo["downloaded"] = $downloaded;
+          $dInfo["size"] = $downloadSize;
+          $dInfo['percentage'] = ($downloaded / $downloadSize) * 100;
+        }
         
         if($GLOBALS['prevTime'] < strtotime("-1 second")){
           /**
@@ -69,7 +88,7 @@ if(isset($argv[1])){
           $GLOBALS['prevSize'] = $downloaded;
           
           if($GLOBALS['averageSpeed'] != 0){
-            $GLOBALS['timeRemaining'] = abs(round(($downloaded - $download_size) / $GLOBALS['averageSpeed'], 0));
+            $GLOBALS['timeRemaining'] = abs(round(($downloaded - $downloadSize) / $GLOBALS['averageSpeed'], 0));
           }else{
             $GLOBALS['timeRemaining'] = 0;
           }
@@ -80,12 +99,33 @@ if(isset($argv[1])){
           $dName => $dInfo
         ));
       },
-      CURLOPT_FILE => $savePathFP
+      CURLOPT_FILE => $savePathFP,
+      CURLOPT_WRITEFUNCTION => function($ch, $data) use ($dName, $savePathFP) {
+        if(isset($GLOBALS["curlCancel$dName"])){
+          return 0;
+        }
+        /**
+         * Live write to file
+         */
+        fwrite($savePathFP, $data);
+        
+        return strlen($data); //return the exact length
+      }
     );
     
     if(file_exists($savePath)){
       $from = filesize($savePath);
-      $curlOptions[CURLOPT_RANGE] = $from . "-";
+      $responseHeaders = @get_headers($url, 1);
+      
+      if(isset($responseHeaders['Content-Length']) && $responseHeaders['Content-Length'] != $from){
+        $GLOBALS['alreadyDownloaded'] = $from;
+        $curlOptions[CURLOPT_RANGE] = $from . "-" . $responseHeaders['Content-Length'];
+      }else{
+        /**
+         * File already fully downloaded, so skip
+         */
+        continue;
+      }
     }
     
     $request = new \MultiRequest\Request($url);

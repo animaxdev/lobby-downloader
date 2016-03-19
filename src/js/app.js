@@ -43,6 +43,7 @@ $.extend(lobby.app, {
 });
 
 lobby.load(function(){
+  lobby.app.init();
   
   $("#newDownload").live("click", function(){
     $("#newDownloadDialog").dialog({
@@ -82,5 +83,34 @@ lobby.load(function(){
     });
   });
   
-  lobby.app.init();
+  $("#downloads .card #reDownload").live("click", function(){
+    dName = $(this).parents(".card").data("id");
+    lobby.app.ajax("retry-download.php", {downloadID: dName}, function(){
+      lobby.app.init();
+    });
+  });
+  
+  $(".card #pauseDownload").live("click", function(){
+    p = $(this).parents(".card");
+    dName = p.data("id");
+    t = $(this);
+    lobby.app.ajax("pause-download.php", {downloadID: dName}, function(){
+      t.hide();
+      p.find("#resumeDownload").show();
+      p.removeAttr("data-active");
+    });
+  });
+  
+  $(".card #resumeDownload").live("click", function(){
+    p = $(this).parents(".card");
+    dName = p.data("id");
+    t = $(this);
+    lobby.app.ajax("pause-download.php", {downloadID: dName, resume: "1"}, function(){
+      t.hide();
+      p.find("#pauseDownload").show();
+      p.attr("data-active", 1);
+      lobby.app.init();
+    });
+  });
+  
 });

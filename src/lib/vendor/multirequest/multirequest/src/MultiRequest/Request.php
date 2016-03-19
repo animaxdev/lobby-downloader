@@ -278,7 +278,7 @@ class Request {
 		}
 		else {
 			$responseCode = $this->getCode();
-			$successCodes = array(200, 204);
+			$successCodes = array(200, 204, 206);
 			if(!in_array($responseCode, $successCodes)) {
 				return new FailedResponse('Response failed with code "' . $responseCode . '"');
 			}

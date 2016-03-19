@@ -1,21 +1,51 @@
 <?php
 namespace Lobby\App;
 
+/**
+ * `dName` is same as `id`
+ * Download Name is same as Download ID
+ */
+
 class downloader extends \Lobby\App {
 
-  public $downloadStatusFile = "";
+  public $downloadStatusFile, $ds = "";
 
   public function page($p){
     $this->downloadStatusFile = APP_DIR . "/src/data/download-status.txt";
+    $this->downloadExists();
     
     if($p === "/receive-status" && isset($_POST['status'])){
       $ds = json_decode(\H::i("status"), true);
-      foreach($ds as $dName => $dInfo){
-        saveJSONData($dName, $dInfo);
+      foreach($ds as $dName => $newDInfo){
+        if($this->downloadExists($dName)){
+          $dInfo = getJSONData($dName);
+          if($dInfo["paused"] == "1"){
+            echo "paused";
+          }else{
+            saveJSONData($dName, $newDInfo);
+          }
+        }else{
+          echo "cancelled";
+        }
       }
       saveData("lastDownloadStatusCheck", time());
+      exit;
     }else{
       return "auto";
+    }
+  }
+  
+  public function downloadExists($dName = ""){
+    if($this->ds == ""){
+      $this->ds = getJSONData("downloads");
+      if($this->ds === null){
+        $this->ds = array();
+      }else{
+        $this->ds = array_keys($this->ds);
+      }
+    }
+    if($dName !== ""){
+      return in_array($dName, $this->ds);
     }
   }
   

@@ -1,27 +1,26 @@
 <div id="downloads">
   <?php
-  $ds = \H::getJSONData("downloads");
-  if($ds === null){
+  if(count($this->ds) === 0){
     ser("No Downloads", "Why don't you download some stuff ?");
   }else{
-    $ds = array_keys($ds);
-    foreach($ds as $dName){
-      $dInfo = \H::getJSONData($dName);
+    foreach($this->ds as $dName){
+      $dInfo = getJSONData($dName);
       $percentage = $dInfo['percentage'];
     ?>
-      <div class='card' data-id="<?php echo $dName;?>" <?php if($percentage != "100"){ echo "data-active='1'"; }?>>
+      <div class='card' data-id="<?php echo $dName;?>" <?php if($percentage != "100" && $dInfo['paused'] == "0"){ echo "data-active='1'"; }?>>
         <div class='card-content'>
-          <span class="card-title"><?php echo $dInfo['url'];?></span>
+          <span class="card-title truncate" title="<?php echo $dInfo['url'];?>"><?php echo $dInfo['url'];?></span>
           <p>
-            <span>Downloading To <?php echo $dInfo['downloadDir'] . DIRECTORY_SEPARATOR . $dInfo['fileName'];?></span>
             <div class="progress">
               <div class="determinate" style="width: <?php echo $percentage;?>%"></div>
             </div>
+            <blockquote><?php echo $dInfo['downloadDir'] . DIRECTORY_SEPARATOR . $dInfo['fileName'];?></blockquote>
             <div class="download-info">
               <?php
               if($dInfo['error'] != "0"){
               ?>
-                <span class="red">Download <b>Failed</b> - <?php echo $dInfo['error'];?></span>
+                <div>Download <b>Failed</b> - <?php echo $dInfo['error'];?></div>
+                <a id="reDownload" class="btn orange">Retry download</a>
               <?php
               }else if($percentage == "0"){
               ?>
@@ -42,7 +41,26 @@
               ?>
             </div>
           </p>
-          <a id="removeDownload"></a>
+          <div class="controls">
+            <?php
+            if($dInfo['paused'] == "1"){
+            ?>
+              <a id="resumeDownload" style="display: inline-block;" title="Resume Download"></a>
+              <a id="pauseDownload" style="display: none;" title="Pause Download"></a>
+            <?php
+            }else if($dInfo['percentage'] == "100"){
+            ?>
+              <a id="reDownload" title="Re Download"></a>
+            <?php
+            }else{
+            ?>
+              <a id="resumeDownload" title="Resume Download"></a>
+              <a id="pauseDownload" title="Pause Download"></a>
+            <?php
+            }
+            ?>
+            <a id="removeDownload" title="Remove Download Entry. Does not delete the file"></a>
+          </div>
         </div>
       </div>
     <?php

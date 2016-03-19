@@ -2,11 +2,33 @@
   position: relative;
   overflow: hidden;
 }
-.card #removeDownload{
-  background: url(<?APP_SRC?>/src/image/close.svg);
+.card .controls{
   position: absolute;
-  height: 20px;
-  width: 20px;
   right: 0.5em;
   top: 0.5em;
+}
+.card .card-title{
+  padding-right: 25px;
+  display: block;
+  word-wrap: break-word;
+  line-height: 30px;
+}
+.card a{
+  display: inline-block;
+  cursor: pointer;
+  height: 22px;
+  width: 22px;
+}
+.card #removeDownload{
+  background: url(<?APP_SRC?>/src/image/close.svg);
+}
+.card #pauseDownload{
+  background: url(<?APP_SRC?>/src/image/pause.svg);
+}
+.card #resumeDownload{
+  display: none;
+  background: url(<?APP_SRC?>/src/image/resume.svg);
+}
+.card #reDownload{
+  background: url(<?APP_SRC?>/src/image/reload.svg);
 }
