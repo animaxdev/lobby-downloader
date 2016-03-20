@@ -4,7 +4,7 @@
     ser("No Downloads", "Why don't you download some stuff ?");
   }else{
     foreach($this->ds as $dName){
-      $dInfo = getJSONData($dName);
+      $dInfo = \H::getJSONData($dName);
       $percentage = $dInfo['percentage'];
     ?>
       <div class='card' data-id="<?php echo $dName;?>" <?php if($percentage != "100" && $dInfo['paused'] == "0"){ echo "data-active='1'"; }?>>
@@ -17,6 +17,11 @@
             <blockquote><?php echo $dInfo['downloadDir'] . DIRECTORY_SEPARATOR . $dInfo['fileName'];?></blockquote>
             <div class="download-info">
               <?php
+              if($dInfo["resumable"] === "0"){
+              ?>
+                <div class="chip red">Not A Resumable Download</div>
+              <?php
+              }
               if($dInfo['error'] != "0"){
               ?>
                 <div>Download <b>Failed</b> - <?php echo $dInfo['error'];?></div>

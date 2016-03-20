@@ -19,9 +19,13 @@ $.extend(lobby.app, {
     });
   },
   
-  refresh: function(){
+  /**
+   * full = 0 Dynamically increase progress
+   * full = 1 Replace #downloads entirely
+   */
+  refresh: function(full){
     lobby.app.ajax("downloads.php", {}, function(d){
-      if($(".workspace #downloads .card[data-active]").length == 0){
+      if($(".workspace #downloads .card[data-active]").length == 0 || full == 1){
         $(".workspace #downloads").replaceWith(d);
         clearInterval(lobby.app.downloadStatusCheck);
       }else{
@@ -55,7 +59,7 @@ lobby.load(function(){
     e.preventDefault();
     lobby.app.ajax("new-download.php", $(this).serializeArray(), function(d){
       if(d != "bad"){
-        lobby.app.refresh();
+        lobby.app.refresh(1);
         lobby.app.init();
         $("#newDownloadDialog").dialog("close");
       }else if(d == "urlNotFound"){
@@ -78,7 +82,7 @@ lobby.load(function(){
       if(r !== "bad"){
         t.fadeOut(500, function(){
           t.remove();
-          lobby.app.refresh();
+          lobby.app.refresh(1);
         });
       }
     });
@@ -87,6 +91,7 @@ lobby.load(function(){
   $("#downloads .card #reDownload").live("click", function(){
     dName = $(this).parents(".card").data("id");
     lobby.app.ajax("retry-download.php", {downloadID: dName}, function(){
+      lobby.app.refresh(1);
       lobby.app.init();
     });
   });

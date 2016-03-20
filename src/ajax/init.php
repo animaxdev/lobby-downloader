@@ -13,7 +13,7 @@ if(!$this->isDownloadRunning()){
    */
   $ds = array_keys(getJSONData("downloads"));
   foreach($ds as $dName){
-    $dInfo = getJSONData($dName);
+    $dInfo = \H::getJSONData($dName);
     if($dInfo['paused'] === "0" && $dInfo['percentage'] != "100"){
       $doDs[$dName] = $dInfo;
     }

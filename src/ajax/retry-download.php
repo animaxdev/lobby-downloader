@@ -2,7 +2,7 @@
 $id = \H::i("downloadID", "", "POST");
 
 if($id != "" && $this->downloadExists($id)){
-  $dInfo = getJSONData($id);
+  $dInfo = \H::getJSONData($id);
   $savePath = $dInfo['downloadDir'] . DIRECTORY_SEPARATOR . $dInfo['fileName'];
   
   /**

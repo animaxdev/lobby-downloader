@@ -18,7 +18,7 @@ class downloader extends \Lobby\App {
       $ds = json_decode(\H::i("status"), true);
       foreach($ds as $dName => $newDInfo){
         if($this->downloadExists($dName)){
-          $dInfo = getJSONData($dName);
+          $dInfo = \H::getJSONData($dName);
           if($dInfo["paused"] == "1"){
             echo "paused";
           }else{
@@ -37,7 +37,7 @@ class downloader extends \Lobby\App {
   
   public function downloadExists($dName = ""){
     if($this->ds == ""){
-      $this->ds = getJSONData("downloads");
+      $this->ds = \H::getJSONData("downloads");
       if($this->ds === null){
         $this->ds = array();
       }else{
@@ -52,7 +52,7 @@ class downloader extends \Lobby\App {
   /**
    * Add a download
    */
-  public function addDownload($url, $fileName, $dDir){
+  public function addDownload($url, $fileName, $dDir, $resumable = true){
     /**
      * Make an ID
      */
@@ -74,6 +74,7 @@ class downloader extends \Lobby\App {
       
       "percentage" => "0",
       "paused" => "0",
+      "resumable" => $resumable ? "1" : "0",
       "size" => 1,
       
       /**
