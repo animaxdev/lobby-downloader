@@ -37,7 +37,7 @@ if(isset($argv[1])){
     $url = $dInfo['url'];
     $savePath = $dInfo['downloadDir'] . DIRECTORY_SEPARATOR . $dInfo['fileName'];
     
-    $savePathFP = fopen($savePath, "a");
+    $savePathFP = fopen($savePath, "a+");
 
     $curlOptions = array(
       CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.2.12) Gecko/20101026 Firefox/3.6.12',
@@ -100,16 +100,17 @@ if(isset($argv[1])){
         ));
       },
       CURLOPT_FILE => $savePathFP,
-      CURLOPT_WRITEFUNCTION => function($ch, $data) use ($dName, $savePathFP) {
+      CURLOPT_WRITEFUNCTION => function($ch, $data) use ($dName, $savePath, &$savePathFP) {
         if(isset($GLOBALS["curlCancel$dName"])){
           return 0;
         }
         /**
          * Live write to file
          */
-        fwrite($savePathFP, $data);
+        fseek($savePathFP, filesize($savePath));
+        $len = fwrite($savePathFP, $data);
         
-        return strlen($data); //return the exact length
+        return $len; //return the exact length
       }
     );
     

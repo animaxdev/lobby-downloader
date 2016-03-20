@@ -20,10 +20,19 @@ if(!$this->isDownloadRunning()){
   }
   
   if(count($doDs) !== 0){
-    $doDsJSON = json_encode($doDs);
-    $command = $this->getPHPExecutable() ." '". __DIR__ ."/background-download.php' '". APP_URL ."/receive-status' '$doDsJSON' > " . __DIR__ . "/shell-out.txt &";
-    exec($command);
-    $this->log("BG download executed command : $command");
+    /**
+     * We're escaping double quotes(")
+     */
+    $doDsJSON = str_replace('"', '\\"', json_encode($doDs));
+    $command = '"' . $this->getPHPExecutable() .'" "'. __DIR__ .'/background-download.php" "'. APP_URL .'/receive-status" "'. $doDsJSON .'" > "' . __DIR__ . '/shell-out.txt" &';
+    
+    if(\Lobby::$sysInfo['os'] === "windows"){
+      $WshShell = new COM("WScript.Shell");
+      $oExec = $WshShell->Run($command, 0, false);
+    }else{
+      exec($command);
+    }
+    $this->log("Background download executed command : $command");
     echo json_encode(array(
       "status" => "started",
       "active" => array_keys($doDs)

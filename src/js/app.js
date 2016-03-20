@@ -78,6 +78,7 @@ lobby.load(function(){
       if(r !== "bad"){
         t.fadeOut(500, function(){
           t.remove();
+          lobby.app.refresh();
         });
       }
     });
