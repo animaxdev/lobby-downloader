@@ -7,7 +7,14 @@
       $dInfo = \H::getJSONData($dName);
       $percentage = $dInfo['percentage'];
     ?>
-      <div class='card' data-id="<?php echo $dName;?>" <?php if($percentage != "100" && $dInfo['paused'] == "0"){ echo "data-active='1'"; }?>>
+      <div class='card' data-id="<?php echo $dName;?>" <?php
+      if($percentage != "100" && $dInfo['paused'] == "0"){
+        echo "data-active='1'";
+      }
+      if($dInfo["resumable"] === "0"){
+        echo " data-notresumable";
+      }
+      ?>>
         <div class='card-content'>
           <span class="card-title truncate" title="<?php echo $dInfo['url'];?>"><?php echo $dInfo['url'];?></span>
           <p>

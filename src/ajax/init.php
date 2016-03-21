@@ -11,10 +11,9 @@ if(!$this->isDownloadRunning()){
   /**
    * The existing downloads
    */
-  $ds = array_keys(getJSONData("downloads"));
-  foreach($ds as $dName){
+  foreach($this->ds as $dName){
     $dInfo = \H::getJSONData($dName);
-    if($dInfo['paused'] === "0" && $dInfo['percentage'] != "100"){
+    if($dInfo['paused'] == "0" && $dInfo['percentage'] != "100"){
       $doDs[$dName] = $dInfo;
     }
   }
@@ -36,6 +35,10 @@ if(!$this->isDownloadRunning()){
     echo json_encode(array(
       "status" => "started",
       "active" => array_keys($doDs)
+    ));
+  }else{
+    echo json_encode(array(
+      "status" => "world-is-great"
     ));
   }
 }else{

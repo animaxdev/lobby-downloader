@@ -4,21 +4,23 @@ if(isset($argv[1])){
   $ds = json_decode($argv[2], true);
   $statusURL = $argv[1];
   
-  function saveData($newDs){
+  function saveData($dName, $newDs){
     global $ds, $statusURL;
-    $newDs = array_replace_recursive($ds, $newDs);
+    $newDs = array_replace_recursive($ds[$dName], $newDs);
+    
+    $newDs = array(
+      $dName => $newDs
+    );
     
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $statusURL);
     curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, "status=" . json_encode($newDs));
+    curl_setopt($ch, CURLOPT_POSTFIELDS, "status=" . urlencode(json_encode($newDs)));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     
     $server_output = curl_exec($ch);
     if($server_output == "cancelled" || $server_output == "paused"){
-      $keys = array_keys($newDs);
-      $dName = $keys[0];
-      $GLOBALS["curlCancel$dName"] = 1;
+      $GLOBALS["$dName-cancel"] = 1;
     }
     curl_close ($ch);
   }
@@ -28,16 +30,26 @@ if(isset($argv[1])){
   $mrHandler = new \MultiRequest\Handler();
   $mrHandler->setConnectionsLimit(1000);
   
-  $GLOBALS['startTime'] = $GLOBALS['prevTime'] = microtime(true);
-  $GLOBALS['prevSize'] = $GLOBALS['currentSpeed'] = $GLOBALS['timeRemaining'] = $GLOBALS['alreadyDownloaded'] = 0;
+  
   
   $curlResult = array();
   
   foreach($ds as $dName => $dInfo) {
     $url = $dInfo['url'];
-    $savePath = $dInfo['downloadDir'] . DIRECTORY_SEPARATOR . $dInfo['fileName'];
     
-    $savePathFP = fopen($savePath, "w+");
+    /**
+     * Set the initial params for each download
+     */
+    if(isset($dInfo['startTime']) && isset($dInfo['prevTime'])){
+      $GLOBALS["$dName-startTime"] = $dInfo['startTime'];
+      $GLOBALS["$dName-prevTime"] = $dInfo['prevTime'];
+    }else{
+      $GLOBALS["$dName-startTime"] = $GLOBALS["$dName-prevTime"] = microtime(true);
+    }
+    $GLOBALS["$dName-alreadyDownloaded"] = $GLOBALS["$dName-prevSize"] = $GLOBALS["$dName-currentSpeed"] = $GLOBALS["$dName-timeRemaining"] = 0;
+    
+    $savePath = $dInfo['downloadDir'] . DIRECTORY_SEPARATOR . $dInfo['fileName'];
+    $savePathFP = fopen($savePath, "a+");
 
     $curlOptions = array(
       CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.2.12) Gecko/20101026 Firefox/3.6.12',
@@ -57,7 +69,9 @@ if(isset($argv[1])){
         }
         
         $dInfo = array(
-          "error" => "0"
+          "error" => "0",
+          "startTime" => $GLOBALS["$dName-startTime"],
+          "prevTime" => $GLOBALS["$dName-prevTime"]
         );
         
         if($downloaded > 0 && $downloadSize > 0){
@@ -69,41 +83,48 @@ if(isset($argv[1])){
            * partial file size to it.
            * $GLOBALS['alreadyDownloaded'] = partial file size
            */
-          $downloaded = $GLOBALS['alreadyDownloaded'] + $downloaded;
-          $downloadSize = $GLOBALS['alreadyDownloaded'] + $downloadSize;
+          $downloaded = $GLOBALS["$dName-alreadyDownloaded"] + $downloaded;
+          $downloadSize = $GLOBALS["$dName-alreadyDownloaded"] + $downloadSize;
           
           $dInfo["downloaded"] = $downloaded;
           $dInfo["size"] = $downloadSize;
           $dInfo['percentage'] = ($downloaded / $downloadSize) * 100;
         }
         
-        if($GLOBALS['prevTime'] < strtotime("-1 second")){
+        if($GLOBALS["$dName-prevTime"] < strtotime("-1 second")){
           /**
            * Calculate Speed
            */
-          $GLOBALS['averageSpeed'] = $downloaded / (microtime(true) - $GLOBALS['startTime']);
+          $GLOBALS["$dName-averageSpeed"] = $downloaded / (microtime(true) - $GLOBALS["$dName-startTime"]);
           
-          $GLOBALS['currentSpeed'] = round(($downloaded - $GLOBALS['prevSize']) / (microtime(true) - $GLOBALS['prevTime']), 0);
-          $GLOBALS['prevTime'] = microtime(true);
-          $GLOBALS['prevSize'] = $downloaded;
+          $GLOBALS["$dName-currentSpeed"] = max(
+            round(
+              ($downloaded - $GLOBALS["$dName-prevSize"]) / (microtime(true) - $GLOBALS["$dName-prevTime"]
+            ), 0
+          ), 0);
+          $GLOBALS["$dName-prevTime"] = microtime(true);
+          $GLOBALS["$dName-prevSize"] = $downloaded;
           
-          if($GLOBALS['averageSpeed'] != 0){
-            $GLOBALS['timeRemaining'] = abs(round(($downloaded - $downloadSize) / $GLOBALS['averageSpeed'], 0));
+          if($GLOBALS["$dName-averageSpeed"] != 0){
+            $GLOBALS["$dName-timeRemaining"] = abs(round(($downloaded - $downloadSize) / $GLOBALS["$dName-averageSpeed"], 0));
           }else{
-            $GLOBALS['timeRemaining'] = 0;
+            $GLOBALS["$dName-timeRemaining"] = 0;
           }
         }
-        $dInfo["eta"] = $GLOBALS['timeRemaining'];
-        $dInfo["speed"] = $GLOBALS['currentSpeed'];
-        saveData(array(
-          $dName => $dInfo
-        ));
+        $dInfo["eta"] = $GLOBALS["$dName-timeRemaining"];
+        $dInfo["speed"] = $GLOBALS["$dName-currentSpeed"];
+        saveData($dName, $dInfo);
       },
-      CURLOPT_FILE => $savePathFP,
       CURLOPT_HEADER => 0,
-      CURLOPT_WRITEFUNCTION => function($ch, $data) use ($dName, $savePath, &$savePathFP) {
-        if(isset($GLOBALS["curlCancel$dName"])){
-          return 0;
+      CURLOPT_WRITEFUNCTION => function($ch, $data) use ($dName, $savePathFP) {
+        if(isset($GLOBALS["$dName-cancel"])){
+          /**
+           * A random number
+           * Fun fact - 11 (Roll number of mine when I was in 11th grade)
+           *          - 29 (Roll number of mine when I was in 10th grade)
+           *          - 31 (Roll number of mine when I was in 9th grade)
+           */
+          return -112931;
         }
         /**
          * Live write to file
@@ -119,28 +140,34 @@ if(isset($argv[1])){
       $responseHeaders = @get_headers($url, 1);
       
       if(isset($responseHeaders['Content-Length']) && $responseHeaders['Content-Length'] != $from){
-        $GLOBALS['alreadyDownloaded'] = $from;
+        $GLOBALS["$dName-alreadyDownloaded"] = $from;
         $curlOptions[CURLOPT_RANGE] = $from . "-" . $responseHeaders['Content-Length'];
       }else{
         /**
          * File already fully downloaded, so skip
          */
+        saveData($dName, array(
+          "percentage" => "100"
+        ));
         continue;
       }
     }
     
     $request = new \MultiRequest\Request($url);
     $request->addCurlOptions($curlOptions);
-    $request->onFailed(function($this, $Exception, \MultiRequest\Handler $handler) use($dName, $dInfo){
-      saveData(array(
-        $dName => array(
+    $request->onFailed(function($this, $Exception, \MultiRequest\Handler $handler) use($dName){
+      /**
+       * If the download was manually cancelled, don't save the error
+       */
+      if(!isset($GLOBALS["$dName-cancel"])){
+        saveData($dName, array(
           "error" => $Exception->getMessage(),
           /**
            * On Error, the percentage is 100 because request completed
            */
-          "percentage" => "100"
-        )
-      ));
+          "percentage" => "0"
+        ));
+      }
     });
     $mrHandler->pushRequestToQueue($request);
   }

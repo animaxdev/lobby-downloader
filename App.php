@@ -16,16 +16,18 @@ class downloader extends \Lobby\App {
     
     if($p === "/receive-status" && isset($_POST['status'])){
       $ds = json_decode(\H::i("status"), true);
-      foreach($ds as $dName => $newDInfo){
-        if($this->downloadExists($dName)){
-          $dInfo = \H::getJSONData($dName);
-          if($dInfo["paused"] == "1"){
-            echo "paused";
+      if(is_array($ds)){
+        foreach($ds as $dName => $newDInfo){
+          if($this->downloadExists($dName)){
+            $dInfo = \H::getJSONData($dName);
+            if($dInfo["paused"] == "1"){
+              echo "paused";
+            }else{
+              \H::saveJSONData($dName, $newDInfo);
+            }
           }else{
-            saveJSONData($dName, $newDInfo);
+            echo "cancelled";
           }
-        }else{
-          echo "cancelled";
         }
       }
       saveData("lastDownloadStatusCheck", time());
@@ -121,6 +123,34 @@ class downloader extends \Lobby\App {
     $suffix = array("", "KB", "M", "G", "T");
     $f_base = floor($base);
     return round(pow(1024, $base - floor($base)), 1) . $suffix[$f_base];
+  }
+  
+  /**
+   * Pauses all running downloads
+   */
+  public function pauseAllDownloads(){
+    $paused = array();
+    foreach($this->ds as $dName){
+      $dInfo = \H::getJSONData($dName);
+      if($dInfo['paused'] == "0" && $dInfo['percentage'] != "100"){
+        $paused[] = $dName;
+        saveJSONData($dName, array(
+          "paused" => "1"
+        ));
+      }
+    }
+    return $paused;
+  }
+  
+  public function refreshDownloads(){
+    $paused = $this->pauseAllDownloads();
+    sleep(1);
+    foreach($paused as $dName){
+      \H::saveJSONData($dName, array(
+        "paused" => 0
+      ));
+    }
+    saveData("lastDownloadStatusCheck", "1");
   }
 
 }

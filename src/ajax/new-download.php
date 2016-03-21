@@ -7,6 +7,7 @@ if($url != "" && $dDir != ""){
   if($file_headers == false || $file_headers[0] == 'HTTP/1.1 404 Not Found') {
     echo "urlNotFound";
   }else{
+    $this->refreshDownloads();
     $p = parse_url($url);
     $fileName = basename($p['path']);
     $this->addDownload($url, $fileName, $dDir, isset($file_headers['Content-Length']));

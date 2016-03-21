@@ -25,21 +25,26 @@ $.extend(lobby.app, {
    */
   refresh: function(full){
     lobby.app.ajax("downloads.php", {}, function(d){
-      if($(".workspace #downloads .card[data-active]").length == 0 || full == 1){
+      if(full == 1){
         $(".workspace #downloads").replaceWith(d);
-        clearInterval(lobby.app.downloadStatusCheck);
+        lobby.app.init();
       }else{
         $(d).find(".card").each(function(){
           id = $(this).data("id");
           cur = $(".workspace #downloads .card[data-id="+ id +"]");
-          if(parseFloat($(this).find(".determinate").css("width")) != parseFloat(cur.find(".determinate")[0].style.width)){
+          curPercentage = parseFloat(cur.find(".determinate")[0].style.width);
+          newPercentage = parseFloat($(this).find(".determinate").css("width"));
+          if(newPercentage == "100%" && curPercentage != "100%"){
+            lobby.app.refresh(1);
+            lobby.app.init();
+          }else if(newPercentage != curPercentage){
             cur.find(".determinate").css("width", $(this).find(".determinate").css("width"));
             cur.find(".download-info").html($(this).find(".download-info").html());
           }
-          if($(this).find(".determinate").css("width") == "100%"){
-            cur.removeAttr("data-active");
-          }
         });
+      }
+      if($(".workspace #downloads .card[data-active]").length == 0){
+        clearInterval(lobby.app.downloadStatusCheck);
       }
     });
   }
@@ -57,19 +62,24 @@ lobby.load(function(){
   
   $("#newDownloadDialog form").live("submit", function(e){
     e.preventDefault();
-    lobby.app.ajax("new-download.php", $(this).serializeArray(), function(d){
-      if(d != "bad"){
-        lobby.app.refresh(1);
-        lobby.app.init();
-        $("#newDownloadDialog").dialog("close");
-      }else if(d == "urlNotFound"){
-        alert("URL Not Found");
-      }
-    });
+    if($(".workspace #downloads .card[data-notresumable][data-active]").length != 0){
+      $("<h4>Can't Add Download</h4><div>Downloads that are un-resumable are running right now. These download(s) can't be resumed. Until all un-resumable downloads are finished, no new downloads can be added.</div>")
+    }else{
+      lobby.app.ajax("new-download.php", $(this).serializeArray(), function(d){
+        if(d != "bad"){
+          lobby.app.refresh(1);
+          lobby.app.init();
+          $("#newDownloadDialog").dialog("close");
+        }else if(d == "urlNotFound"){
+          alert("URL Not Found");
+        }
+      });
+    }
   });
   
   $("#newDownloadDialog #chooseDLoc").live("click", function() {
-    lobby.mod.FilePicker("/", function(result) {
+    default_dir = $("#newDownloadDialog #dLoc").val();
+    lobby.mod.FilePicker(default_dir, function(result) {
       $("#newDownloadDialog #dLoc").val(result.dir);
       lobby.app.save("downloadsDir", result.dir);
     });
@@ -90,32 +100,33 @@ lobby.load(function(){
   
   $("#downloads .card #reDownload").live("click", function(){
     dName = $(this).parents(".card").data("id");
-    lobby.app.ajax("retry-download.php", {downloadID: dName}, function(){
+    lobby.app.ajax("restart-download.php", {downloadID: dName}, function(){
       lobby.app.refresh(1);
-      lobby.app.init();
     });
   });
   
   $(".card #pauseDownload").live("click", function(){
-    p = $(this).parents(".card");
-    dName = p.data("id");
     t = $(this);
+    p = t.parents(".card");
+    dName = p.data("id");
     lobby.app.ajax("pause-download.php", {downloadID: dName}, function(){
-      t.hide();
-      p.find("#resumeDownload").show();
+      /*t.hide();
+      p.find("#resumeDownload").css('display', 'inline-block');
       p.removeAttr("data-active");
+      lobby.app.init();*/
+      lobby.app.refresh(1);
     });
   });
   
   $(".card #resumeDownload").live("click", function(){
-    p = $(this).parents(".card");
-    dName = p.data("id");
     t = $(this);
+    p = t.parents(".card");
+    dName = p.data("id");
     lobby.app.ajax("pause-download.php", {downloadID: dName, resume: "1"}, function(){
-      t.hide();
-      p.find("#pauseDownload").show();
-      p.attr("data-active", 1);
-      lobby.app.init();
+      /*t.hide();
+      p.find("#pauseDownload").css('display', 'inline-block');
+      p.attr("data-active", 1);*/
+      lobby.app.refresh(1);
     });
   });
   

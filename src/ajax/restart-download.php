@@ -17,4 +17,5 @@ if($id != "" && $this->downloadExists($id)){
     "percentage" => "0",
     "error" => "0"
   ));
+  $this->refreshDownloads();
 }
