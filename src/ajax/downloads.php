@@ -32,7 +32,7 @@
               if($dInfo['error'] != "0"){
               ?>
                 <div>Download <b>Failed</b> - <?php echo $dInfo['error'];?></div>
-                <a id="reDownload" class="btn orange">Retry download</a>
+                <a id="reDownload" class="btn orange"></a>
               <?php
               }else if($percentage == "0"){
               ?>
@@ -47,7 +47,7 @@
               ?>
                 <span class="chip">Downloaded <?php echo $this->convertToReadableSize($dInfo['downloaded']) . " of " . $this->convertToReadableSize($dInfo['size']) . " ($percentage%)";?></span>
                 <div class="chip"><?php echo $this->convertToReadableSize($dInfo['speed']);?>/S</div>
-                <div class="chip"><?php echo $dInfo['eta'];?> seconds remaining</div>
+                <div class="chip"><?php echo $this->secToTime($dInfo['eta']);?> remaining</div>
               <?php
               }
               ?>

@@ -1,5 +1,5 @@
 <?php
-set_time_limit(0);
+set_time_limit(-1);
 if(isset($argv[1])){
   $ds = json_decode($argv[2], true);
   $statusURL = $argv[1];
@@ -37,15 +37,12 @@ if(isset($argv[1])){
   foreach($ds as $dName => $dInfo) {
     $url = $dInfo['url'];
     
+    $cookieJarFilename = tempnam(sys_get_temp_dir(), time() . "_" . substr(md5(microtime()),0,5));
     /**
      * Set the initial params for each download
      */
-    if(isset($dInfo['startTime']) && isset($dInfo['prevTime'])){
-      $GLOBALS["$dName-startTime"] = $dInfo['startTime'];
-      $GLOBALS["$dName-prevTime"] = $dInfo['prevTime'];
-    }else{
-      $GLOBALS["$dName-startTime"] = $GLOBALS["$dName-prevTime"] = microtime(true);
-    }
+    $GLOBALS["$dName-startTime"] = $GLOBALS["$dName-prevTime"] = microtime(true);
+    
     $GLOBALS["$dName-alreadyDownloaded"] = $GLOBALS["$dName-prevSize"] = $GLOBALS["$dName-currentSpeed"] = $GLOBALS["$dName-timeRemaining"] = 0;
     
     $savePath = $dInfo['downloadDir'] . DIRECTORY_SEPARATOR . $dInfo['fileName'];
@@ -55,7 +52,11 @@ if(isset($argv[1])){
       CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.2.12) Gecko/20101026 Firefox/3.6.12',
       CURLOPT_NOPROGRESS => false,
       CURLOPT_FOLLOWLOCATION => 1,
+      CURLOPT_CONNECTTIMEOUT => 0,
+      CURLOPT_TIMEOUT => 0,
       CURLOPT_BINARYTRANSFER => true,
+      CURLOPT_COOKIEJAR => $cookieJarFilename,
+      CURLOPT_COOKIEFILE => $cookieJarFilename,
       CURLOPT_PROGRESSFUNCTION => function($resource, $downloadSize, $downloaded, $upload_size, $uploaded = "") use($dName) {
         /**
          * On new versions of cURL, $resource parameter is not passed
@@ -70,11 +71,11 @@ if(isset($argv[1])){
         
         $dInfo = array(
           "error" => "0",
-          "startTime" => $GLOBALS["$dName-startTime"],
-          "prevTime" => $GLOBALS["$dName-prevTime"]
+          "paused" => "0"
         );
         
         if($downloaded > 0 && $downloadSize > 0){
+          $sessionDownloaded = $downloaded;
           /**
            * If the file is resumed for download, then the
            * $downloaded and $downloadSize will be the difference
@@ -95,15 +96,15 @@ if(isset($argv[1])){
           /**
            * Calculate Speed
            */
-          $GLOBALS["$dName-averageSpeed"] = $downloaded / (microtime(true) - $GLOBALS["$dName-startTime"]);
+          $GLOBALS["$dName-averageSpeed"] = $sessionDownloaded / (microtime(true) - $GLOBALS["$dName-startTime"]);
           
           $GLOBALS["$dName-currentSpeed"] = max(
             round(
-              ($downloaded - $GLOBALS["$dName-prevSize"]) / (microtime(true) - $GLOBALS["$dName-prevTime"]
+              ($sessionDownloaded - $GLOBALS["$dName-prevSize"]) / (microtime(true) - $GLOBALS["$dName-prevTime"]
             ), 0
           ), 0);
           $GLOBALS["$dName-prevTime"] = microtime(true);
-          $GLOBALS["$dName-prevSize"] = $downloaded;
+          $GLOBALS["$dName-prevSize"] = $sessionDownloaded;
           
           if($GLOBALS["$dName-averageSpeed"] != 0){
             $GLOBALS["$dName-timeRemaining"] = abs(round(($downloaded - $downloadSize) / $GLOBALS["$dName-averageSpeed"], 0));

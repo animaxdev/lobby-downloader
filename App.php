@@ -91,7 +91,7 @@ class downloader extends \Lobby\App {
   }
   
   public function isDownloadRunning(){
-    if (getData("lastDownloadStatusCheck") < strtotime("-1 second")) {
+    if (getData("lastDownloadStatusCheck") < strtotime("-5 seconds")) {
       return false;
     }else{
       return true;
@@ -120,10 +120,18 @@ class downloader extends \Lobby\App {
   
   public function convertToReadableSize($size){
     $base = log($size) / log(1024);
-    $suffix = array("", "KB", "M", "G", "T");
+    $suffix = array("", "KB", "MB", "GB", "TB");
     $f_base = floor($base);
     return round(pow(1024, $base - floor($base)), 1) . $suffix[$f_base];
   }
+  
+  public function secToTime($seconds) {
+    $hours = floor($seconds / 3600);
+    $minutes = floor(($seconds / 60) % 60);
+    $seconds = $seconds % 60;
+  
+    return $hours > 0 ? "$hours hours, $minutes minutes" : ($minutes > 0 ? "$minutes minutes, $seconds seconds" : "$seconds seconds");
+  } 
   
   /**
    * Pauses all running downloads

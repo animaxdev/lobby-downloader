@@ -1,4 +1,7 @@
 <?php
+use Symfony\Component\Process\Process;
+use Symfony\Component\Process\Exception\ProcessFailedException;
+
 /**
  * Start Downloads if not started
  */
@@ -24,13 +27,10 @@ if(!$this->isDownloadRunning()){
      */
     $doDsJSON = str_replace('"', '\\"', json_encode($doDs));
     $command = '"' . $this->getPHPExecutable() .'" "'. __DIR__ .'/background-download.php" "'. APP_URL .'/receive-status" "'. $doDsJSON .'" > "' . __DIR__ . '/shell-out.txt" &';
-    
-    if(\Lobby::$sysInfo['os'] === "windows"){
-      $WshShell = new COM("WScript.Shell");
-      $oExec = $WshShell->Run($command, 0, false);
-    }else{
-      exec($command);
-    }
+
+    $process = new Process($command);
+    $process->start();
+
     $this->log("Background download executed command : $command");
     echo json_encode(array(
       "status" => "started",

@@ -34,9 +34,8 @@ $.extend(lobby.app, {
           cur = $(".workspace #downloads .card[data-id="+ id +"]");
           curPercentage = parseFloat(cur.find(".determinate")[0].style.width);
           newPercentage = parseFloat($(this).find(".determinate").css("width"));
-          if(newPercentage == "100%" && curPercentage != "100%"){
+          if(newPercentage == "100" && curPercentage != "100"){
             lobby.app.refresh(1);
-            lobby.app.init();
           }else if(newPercentage != curPercentage){
             cur.find(".determinate").css("width", $(this).find(".determinate").css("width"));
             cur.find(".download-info").html($(this).find(".download-info").html());
@@ -47,6 +46,10 @@ $.extend(lobby.app, {
         clearInterval(lobby.app.downloadStatusCheck);
       }
     });
+  },
+  
+  toggleView: function(){
+    
   }
   
 });
@@ -67,11 +70,10 @@ lobby.load(function(){
     }else{
       lobby.app.ajax("new-download.php", $(this).serializeArray(), function(d){
         if(d != "bad"){
-          lobby.app.refresh(1);
-          lobby.app.init();
           $("#newDownloadDialog").dialog("close");
+          lobby.app.refresh(1);
         }else if(d == "urlNotFound"){
-          alert("URL Not Found");
+          $("URL Not Found").dialog();
         }
       });
     }
