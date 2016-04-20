@@ -5,6 +5,7 @@ $this->addStyle("app.css");
 <div class="contents">
   <h1>Downloader</h1>
   <a id="newDownload" class="btn green">New Download</a>
+  <a class="btn blue" href="<?php echo $this->u("/settings");?>"><?php _e("Settings");?></a>
   <?php require_once APP_DIR . "/src/ajax/downloads.php";?>
 </div>
 <div id="newDownloadDialog" hide>

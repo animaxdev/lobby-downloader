@@ -91,7 +91,7 @@ class downloader extends \Lobby\App {
   }
   
   public function isDownloadRunning(){
-    if (getData("lastDownloadStatusCheck") < strtotime("-5 seconds")) {
+    if ($this->getData("lastDownloadStatusCheck") < strtotime("-5 seconds")) {
       return false;
     }else{
       return true;
@@ -119,10 +119,10 @@ class downloader extends \Lobby\App {
   }
   
   public function convertToReadableSize($size){
-    $base = log($size) / log(1024);
+    $base = log($size) / log(1000);
     $suffix = array("", "KB", "MB", "GB", "TB");
     $f_base = floor($base);
-    return round(pow(1024, $base - floor($base)), 1) . $suffix[$f_base];
+    return round(pow(1000, $base - floor($base)), 1) . $suffix[$f_base];
   }
   
   public function secToTime($seconds) {

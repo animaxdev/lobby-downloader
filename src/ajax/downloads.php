@@ -32,7 +32,7 @@
               if($dInfo['error'] != "0"){
               ?>
                 <div>Download <b>Failed</b> - <?php echo $dInfo['error'];?></div>
-                <a id="reDownload" class="btn orange"></a>
+                <a id="reDownload" class="orange"></a>
               <?php
               }else if($percentage == "0"){
               ?>

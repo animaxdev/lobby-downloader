@@ -68,7 +68,7 @@ if(isset($argv[1])){
           $downloaded = $downloadSize;
           $downloadSize = $resource;
         }
-        
+        $sessionDownloaded = 0;
         $dInfo = array(
           "error" => "0",
           "paused" => "0"
@@ -107,7 +107,7 @@ if(isset($argv[1])){
           $GLOBALS["$dName-prevSize"] = $sessionDownloaded;
           
           if($GLOBALS["$dName-averageSpeed"] != 0){
-            $GLOBALS["$dName-timeRemaining"] = abs(round(($downloaded - $downloadSize) / $GLOBALS["$dName-averageSpeed"], 0));
+            $GLOBALS["$dName-timeRemaining"] = abs(round(($sessionDownloaded - ($downloadSize - $GLOBALS["$dName-alreadyDownloaded"])) / $GLOBALS["$dName-averageSpeed"], 0));
           }else{
             $GLOBALS["$dName-timeRemaining"] = 0;
           }

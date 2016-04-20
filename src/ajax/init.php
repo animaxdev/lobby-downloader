@@ -1,6 +1,5 @@
 <?php
-use Symfony\Component\Process\Process;
-use Symfony\Component\Process\Exception\ProcessFailedException;
+use Francium\Process;
 
 /**
  * Start Downloads if not started
@@ -25,11 +24,17 @@ if(!$this->isDownloadRunning()){
     /**
      * We're escaping double quotes(")
      */
-    $doDsJSON = str_replace('"', '\\"', json_encode($doDs));
-    $command = '"' . $this->getPHPExecutable() .'" "'. __DIR__ .'/background-download.php" "'. APP_URL .'/receive-status" "'. $doDsJSON .'" > "' . __DIR__ . '/shell-out.txt" &';
-
-    $process = new Process($command);
-    $process->start();
+    $doDsJSON = json_encode($doDs);
+    $command = '"' . $this->getPHPExecutable() .'" "'. __DIR__ .'/background-download.php" "'. APP_URL .'/receive-status" "'. $doDsJSON .'"';
+    
+    $Process = new Process($this->getPHPExecutable(), array(
+      "arguments" => array(
+        __DIR__ .'/background-download.php',
+        APP_URL .'/receive-status',
+        $doDsJSON
+      )
+    ));
+    $command = $Process->start();
 
     $this->log("Background download executed command : $command");
     echo json_encode(array(
