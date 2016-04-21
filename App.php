@@ -8,38 +8,16 @@ namespace Lobby\App;
 
 class downloader extends \Lobby\App {
 
-  public $downloadStatusFile, $ds = "";
+  public $ds = null;
 
   public function page($p){
-    $this->downloadStatusFile = APP_DIR . "/src/data/download-status.txt";
     $this->downloadExists();
-    
-    if($p === "/receive-status" && isset($_POST['status'])){
-      $ds = json_decode(\H::i("status"), true);
-      if(is_array($ds)){
-        foreach($ds as $dName => $newDInfo){
-          if($this->downloadExists($dName)){
-            $dInfo = \H::getJSONData($dName);
-            if($dInfo["paused"] == "1"){
-              echo "paused";
-            }else{
-              \H::saveJSONData($dName, $newDInfo);
-            }
-          }else{
-            echo "cancelled";
-          }
-        }
-      }
-      saveData("lastDownloadStatusCheck", time());
-      exit;
-    }else{
-      return "auto";
-    }
+    return "auto";
   }
   
   public function downloadExists($dName = ""){
-    if($this->ds == ""){
-      $this->ds = \H::getJSONData("downloads");
+    if($this->ds === null){
+      $this->ds = $this->getJSONData("downloads");
       if($this->ds === null){
         $this->ds = array();
       }else{
@@ -91,11 +69,28 @@ class downloader extends \Lobby\App {
   }
   
   public function isDownloadRunning(){
-    if ($this->getData("lastDownloadStatusCheck") < strtotime("-5 seconds")) {
+    if ($this->getData("lastDownloadStatusCheck") < strtotime("-10 seconds")) {
       return false;
     }else{
       return true;
     }
+  }
+  
+  /**
+   * Get the array of downloads that are in queue for download
+   */
+  public function getActiveDownloads(){
+    $doDs = array();
+    /**
+     * The existing downloads
+     */
+    foreach($this->ds as $dName){
+      $dInfo = $this->getJSONData($dName);
+      if($dInfo['paused'] == "0" && $dInfo['percentage'] != "100"){
+        $doDs[$dName] = $dInfo;
+      }
+    }
+    return $doDs;
   }
   
   public function getPHPExecutable() {

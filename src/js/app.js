@@ -32,13 +32,16 @@ $.extend(lobby.app, {
         $(d).find(".card").each(function(){
           id = $(this).data("id");
           cur = $(".workspace #downloads .card[data-id="+ id +"]");
+          
           curPercentage = parseFloat(cur.find(".determinate")[0].style.width);
           newPercentage = parseFloat($(this).find(".determinate").css("width"));
+          
           if(newPercentage == "100" && curPercentage != "100"){
             lobby.app.refresh(1);
           }else if(newPercentage != curPercentage){
             cur.find(".determinate").css("width", $(this).find(".determinate").css("width"));
             cur.find(".download-info").html($(this).find(".download-info").html());
+            cur.find(".controls").html($(this).find(".controls").html());
           }
         });
       }

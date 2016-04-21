@@ -7,6 +7,7 @@
   "author" : "Subin Siby",
   "author_page" : "http://subinsb.com",
   "app_page" : "http://subinsb.com/lobby-app-downloader",
+  "logo": "true",
   "require": {
     "curl": ">=7.25.0"
   }

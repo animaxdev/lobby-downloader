@@ -5,7 +5,7 @@ if($id != "" && $this->downloadExists($id)){
   $dInfo = \H::getJSONData($id);
   $savePath = $dInfo['downloadDir'] . DIRECTORY_SEPARATOR . $dInfo['fileName'];
   
-  if($dInfo["percentage"] === "100"){
+  if($dInfo["percentage"] == "100"){
     /**
      * File was downloaded completely, so
      * Remove downloaded file and start again

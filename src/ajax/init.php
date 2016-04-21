@@ -1,5 +1,5 @@
 <?php
-use Francium\Process;
+use Fr\Process;
 
 /**
  * Start Downloads if not started
@@ -8,33 +8,23 @@ if(!$this->isDownloadRunning()){
   /**
    * The downloads to do
    */
-  $doDs = array();
-  
-  /**
-   * The existing downloads
-   */
-  foreach($this->ds as $dName){
-    $dInfo = \H::getJSONData($dName);
-    if($dInfo['paused'] == "0" && $dInfo['percentage'] != "100"){
-      $doDs[$dName] = $dInfo;
-    }
-  }
+  $doDs = $this->getActiveDownloads();
   
   if(count($doDs) !== 0){
     /**
      * We're escaping double quotes(")
      */
     $doDsJSON = json_encode($doDs);
-    $command = '"' . $this->getPHPExecutable() .'" "'. __DIR__ .'/background-download.php" "'. APP_URL .'/receive-status" "'. $doDsJSON .'"';
     
     $Process = new Process($this->getPHPExecutable(), array(
       "arguments" => array(
-        __DIR__ .'/background-download.php',
-        APP_URL .'/receive-status',
+        __DIR__ . '/background-download.php',
+        $this->URL . '/receive-status',
         $doDsJSON
       )
     ));
     $command = $Process->start();
+    $this->saveData("lastDownloadStatusCheck", time() + 10);
 
     $this->log("Background download executed command : $command");
     echo json_encode(array(

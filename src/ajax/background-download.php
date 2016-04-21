@@ -8,21 +8,17 @@ if(isset($argv[1])){
     global $ds, $statusURL;
     $newDs = array_replace_recursive($ds[$dName], $newDs);
     
-    $newDs = array(
-      $dName => $newDs
-    );
-    
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $statusURL);
     curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, "status=" . urlencode(json_encode($newDs)));
+    curl_setopt($ch, CURLOPT_POSTFIELDS, "dName=". urlencode($dName) ."&newDInfo=" . urlencode(json_encode($newDs)));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     
     $server_output = curl_exec($ch);
     if($server_output == "cancelled" || $server_output == "paused"){
       $GLOBALS["$dName-cancel"] = 1;
     }
-    curl_close ($ch);
+    curl_close($ch);
   }
   
   require_once __DIR__ . "/../lib/vendor/autoload.php";
@@ -30,14 +26,12 @@ if(isset($argv[1])){
   $mrHandler = new \MultiRequest\Handler();
   $mrHandler->setConnectionsLimit(1000);
   
-  
-  
   $curlResult = array();
   
   foreach($ds as $dName => $dInfo) {
     $url = $dInfo['url'];
     
-    $cookieJarFilename = tempnam(sys_get_temp_dir(), time() . "_" . substr(md5(microtime()),0,5));
+    $cookieJarFilename = tempnam(sys_get_temp_dir(), time() . "_" . substr(md5(microtime()), 0, 5));
     /**
      * Set the initial params for each download
      */
@@ -50,13 +44,13 @@ if(isset($argv[1])){
 
     $curlOptions = array(
       CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.2.12) Gecko/20101026 Firefox/3.6.12',
-      CURLOPT_NOPROGRESS => false,
       CURLOPT_FOLLOWLOCATION => 1,
       CURLOPT_CONNECTTIMEOUT => 0,
       CURLOPT_TIMEOUT => 0,
       CURLOPT_BINARYTRANSFER => true,
       CURLOPT_COOKIEJAR => $cookieJarFilename,
       CURLOPT_COOKIEFILE => $cookieJarFilename,
+      CURLOPT_NOPROGRESS => false,
       CURLOPT_PROGRESSFUNCTION => function($resource, $downloadSize, $downloaded, $upload_size, $uploaded = "") use($dName) {
         /**
          * On new versions of cURL, $resource parameter is not passed

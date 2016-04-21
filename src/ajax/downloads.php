@@ -32,7 +32,6 @@
               if($dInfo['error'] != "0"){
               ?>
                 <div>Download <b>Failed</b> - <?php echo $dInfo['error'];?></div>
-                <a id="reDownload" class="orange"></a>
               <?php
               }else if($percentage == "0"){
               ?>
@@ -55,14 +54,14 @@
           </p>
           <div class="controls">
             <?php
-            if($dInfo['paused'] == "1"){
+            if($dInfo['percentage'] == "100" || $dInfo['error'] != "0"){
+            ?>
+              <a id="reDownload" title="Re Download"></a>
+            <?php
+            }else if($dInfo['paused'] == "1"){
             ?>
               <a id="resumeDownload" style="display: inline-block;" title="Resume Download"></a>
               <a id="pauseDownload" style="display: none;" title="Pause Download"></a>
-            <?php
-            }else if($dInfo['percentage'] == "100"){
-            ?>
-              <a id="reDownload" title="Re Download"></a>
             <?php
             }else{
             ?>
