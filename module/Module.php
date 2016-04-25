@@ -58,7 +58,7 @@ class app_downloader extends \Lobby\Module {
     
     $this->app->addNotifyItem("download_info", array(
       "contents" => "Downloading - ". round($percentage, 2) ."% <div class='progress'><div class='determinate' style='width: ". $percentage ."%;'></div></div>",
-      "icon" => "update"
+      "iconURL" => $this->app->srcURL . "/src/image/logo.svg"
     ));
   }
 
