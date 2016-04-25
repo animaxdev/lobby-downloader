@@ -134,9 +134,18 @@ if(isset($argv[1])){
       $from = filesize($savePath);
       $responseHeaders = @get_headers($url, 1);
       
-      if(isset($responseHeaders['Content-Length']) && $responseHeaders['Content-Length'] != $from){
+      $contentLength = 0;
+      if(isset($responseHeaders['Content-Length'])){
+        $contentLength = $responseHeaders['Content-Length'];
+        if(is_array($contentLength)){
+          $index = count($contentLength) - 1;
+          $contentLength = $contentLength[$index];
+        }
+      }
+      
+      if($contentLength != $from){
         $GLOBALS["$dName-alreadyDownloaded"] = $from;
-        $curlOptions[CURLOPT_RANGE] = $from . "-" . $responseHeaders['Content-Length'];
+        $curlOptions[CURLOPT_RANGE] = $from . "-" . $contentLength;
       }else{
         /**
          * File already fully downloaded, so skip
