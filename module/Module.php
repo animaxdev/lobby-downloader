@@ -36,6 +36,7 @@ class app_downloader extends \Lobby\Module {
       /**
        * Start all active downloads
        */
+      $moduleInit = 1;
       $this->app->inc("src/ajax/init.php");
     }else{
       /**

@@ -23,14 +23,21 @@ if(!$this->isDownloadRunning()){
         $doDsJSON
       )
     ));
-    $command = $Process->start();
+    
+    $command = $Process->start(function() use ($doDs){
+      /**
+       * If init.php is included by Module, then no need of output
+       */
+      if(!isset($moduleInit)){
+        echo json_encode(array(
+          "status" => "started",
+          "active" => array_keys($doDs)
+        ));
+      }
+    });
     $this->saveData("lastDownloadStatusCheck", time() + 10);
 
     $this->log("Background download executed command : $command");
-    echo json_encode(array(
-      "status" => "started",
-      "active" => array_keys($doDs)
-    ));
   }else{
     echo json_encode(array(
       "status" => "world-is-great"

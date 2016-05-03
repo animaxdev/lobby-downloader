@@ -153,7 +153,6 @@ if(isset($argv[1])){
         saveData($dName, array(
           "percentage" => "100"
         ));
-        continue;
       }
     }
     
