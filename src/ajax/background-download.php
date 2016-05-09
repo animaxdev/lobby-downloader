@@ -131,7 +131,7 @@ if(isset($argv[1])){
     );
     
     if(file_exists($savePath)){
-      $from = filesize($savePath);
+      $fileSize = filesize($savePath);
       $responseHeaders = @get_headers($url, 1);
       
       $contentLength = 0;
@@ -143,9 +143,9 @@ if(isset($argv[1])){
         }
       }
       
-      if($contentLength != $from){
-        $GLOBALS["$dName-alreadyDownloaded"] = $from;
-        $curlOptions[CURLOPT_RANGE] = $from . "-" . $contentLength;
+      if($contentLength > $fileSize){
+        $GLOBALS["$dName-alreadyDownloaded"] = $fileSize;
+        $curlOptions[CURLOPT_RANGE] = $fileSize . "-" . $contentLength;
       }else{
         /**
          * File already fully downloaded, so skip

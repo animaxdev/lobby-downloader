@@ -24,11 +24,13 @@ if(!$this->isDownloadRunning()){
       )
     ));
     
-    $command = $Process->start(function() use ($doDs){
+    $moduleInit = isset($moduleInit);
+    
+    $command = $Process->start(function() use ($doDs, $moduleInit){
       /**
        * If init.php is included by Module, then no need of output
        */
-      if(!isset($moduleInit)){
+      if(!$moduleInit){
         echo json_encode(array(
           "status" => "started",
           "active" => array_keys($doDs)

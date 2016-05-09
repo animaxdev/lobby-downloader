@@ -37,7 +37,9 @@ class app_downloader extends \Lobby\Module {
        * Start all active downloads
        */
       $moduleInit = 1;
-      $this->app->inc("src/ajax/init.php");
+      $this->app->inc("src/ajax/init.php", array(
+        "moduleInit" => true
+      ));
     }else{
       /**
        * All downloads have been completed, so remove Notify item
