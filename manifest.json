@@ -10,7 +10,7 @@
   "logo": "true",
   "require": {
     "lobby": ">=0.6",
-    "curl": ">=7.25.0"
+    "curl": ">=7.0"
   },
   "screenshots": [
     "//i.imgur.com/dAFvGzD.png"
