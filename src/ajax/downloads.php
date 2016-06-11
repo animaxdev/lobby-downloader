@@ -1,10 +1,10 @@
 <div id="downloads">
   <?php
   if(count($this->ds) === 0){
-    ser("No Downloads", "Why don't you download some stuff ?");
+    echo ser("No Downloads", "Why don't you download some stuff ?");
   }else{
     foreach($this->ds as $dName){
-      $dInfo = \H::getJSONData($dName);
+      $dInfo = $this->getJSONData($dName);
       $percentage = $dInfo['percentage'];
     ?>
       <div class='card' data-id="<?php echo $dName;?>" <?php

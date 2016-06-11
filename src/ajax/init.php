@@ -19,7 +19,7 @@ if(!$this->isDownloadRunning()){
     $Process = new Process($this->getPHPExecutable(), array(
       "arguments" => array(
         __DIR__ . '/background-download.php',
-        $this->URL . '/receive-status',
+        $this->url . '/receive-status',
         $doDsJSON
       )
     ));

@@ -83,7 +83,7 @@ if(isset($argv[1])){
           
           $dInfo["downloaded"] = $downloaded;
           $dInfo["size"] = $downloadSize;
-          $dInfo['percentage'] = ($downloaded / $downloadSize) * 100;
+          $dInfo['percentage'] = round(($downloaded / $downloadSize) * 100, 0);
         }
         
         if($GLOBALS["$dName-prevTime"] < strtotime("-1 second")){

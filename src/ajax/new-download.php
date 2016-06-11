@@ -1,6 +1,6 @@
 <?php
-$url = \H::i("downloadURL", "", "POST");
-$dDir = \H::i("downloadPath", "", "POST");
+$url = \Request::postParam("downloadURL", "");
+$dDir = \Request::postParam("downloadPath", "");
 
 if($url != "" && $dDir != ""){
   $file_headers = @get_headers($url, 1);

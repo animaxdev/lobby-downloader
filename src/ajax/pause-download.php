@@ -1,5 +1,5 @@
 <?php
-$id = \H::i("downloadID", "", "POST");
+$id = \Request::postParam("downloadID", "");
 
 if($id != ""){
   $this->refreshDownloads();
@@ -7,7 +7,7 @@ if($id != ""){
   /**
    * Make percentage to 0 to indicate download not completed
    */
-  \H::saveJSONData($id, array(
+  $this->saveJSONData($id, array(
     /**
      * Reverse, because we call refreshDownloads()
      */

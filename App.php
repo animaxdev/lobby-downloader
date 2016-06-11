@@ -38,7 +38,7 @@ class downloader extends \Lobby\App {
      */
     $dName = md5($url . rand(0, 1000));
     
-    \H::saveJSONData($dName, array(
+    $this->saveJSONData($dName, array(
       "downloaded" => "0",
       "downloadDir" => $dDir,
       "error" => "0",
@@ -63,7 +63,7 @@ class downloader extends \Lobby\App {
       "speed" => "0",
       "url" => $url
     ));
-    \H::saveJSONData("downloads", array(
+    $this->saveJSONData("downloads", array(
       $dName => 1
     ));
   }
@@ -134,7 +134,7 @@ class downloader extends \Lobby\App {
   public function pauseAllDownloads(){
     $paused = array();
     foreach($this->ds as $dName){
-      $dInfo = \H::getJSONData($dName);
+      $dInfo = $this->getJSONData($dName);
       if($dInfo['paused'] == "0" && $dInfo['percentage'] != "100"){
         $paused[] = $dName;
         saveJSONData($dName, array(
@@ -149,11 +149,11 @@ class downloader extends \Lobby\App {
     $paused = $this->pauseAllDownloads();
     sleep(1);
     foreach($paused as $dName){
-      \H::saveJSONData($dName, array(
+      $this->saveJSONData($dName, array(
         "paused" => 0
       ));
     }
-    saveData("lastDownloadStatusCheck", "1");
+    $this->saveData("lastDownloadStatusCheck", "1");
   }
 
 }

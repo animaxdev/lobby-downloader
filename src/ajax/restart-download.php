@@ -1,8 +1,8 @@
 <?php
-$id = \H::i("downloadID", "", "POST");
+$id = \Request::postParam("downloadID", "");
 
 if($id != "" && $this->downloadExists($id)){
-  $dInfo = \H::getJSONData($id);
+  $dInfo = $this->getJSONData($id);
   $savePath = $dInfo['downloadDir'] . DIRECTORY_SEPARATOR . $dInfo['fileName'];
   
   if($dInfo["percentage"] == "100"){

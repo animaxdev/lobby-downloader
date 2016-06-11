@@ -1,9 +1,9 @@
 <?php
-$dName = \H::i("downloadName", "", "POST");
+$dName = \Request::postParam("downloadName", "");
 
 if($dName != ""){
   $this->refreshDownloads();
-  removeData($dName);
+  $this->removeData($dName);
   saveJSONData("downloads", array(
     $dName => false
   ));

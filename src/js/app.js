@@ -7,7 +7,7 @@ $.extend(lobby.app, {
       r = JSON.parse(r);
       if(r.status === "started"){
         $.each(r.active, function(i, dName){
-          $(".workspace #downloads .card[data-id="+ dName +"]").attr("data-active", "1");
+          $("#workspace #downloads .card[data-id="+ dName +"]").attr("data-active", "1");
         });
       }
       if(r.status === "started" || r.status === "running"){
@@ -26,12 +26,12 @@ $.extend(lobby.app, {
   refresh: function(full){
     lobby.app.ajax("downloads.php", {}, function(d){
       if(full == 1){
-        $(".workspace #downloads").replaceWith(d);
+        $("#workspace #downloads").replaceWith(d);
         lobby.app.init();
       }else{
         $(d).find(".card").each(function(){
           id = $(this).data("id");
-          cur = $(".workspace #downloads .card[data-id="+ id +"]");
+          cur = $("#workspace #downloads .card[data-id="+ id +"]");
           
           curPercentage = parseFloat(cur.find(".determinate")[0].style.width);
           newPercentage = parseFloat($(this).find(".determinate").css("width"));
@@ -45,7 +45,7 @@ $.extend(lobby.app, {
           }
         });
       }
-      if($(".workspace #downloads .card[data-active]").length == 0){
+      if($("#workspace #downloads .card[data-active]").length == 0){
         clearInterval(lobby.app.downloadStatusCheck);
       }
     });
@@ -68,7 +68,7 @@ lobby.load(function(){
   
   $("#newDownloadDialog form").live("submit", function(e){
     e.preventDefault();
-    if($(".workspace #downloads .card[data-notresumable][data-active]").length != 0){
+    if($("#workspace #downloads .card[data-notresumable][data-active]").length != 0){
       $("<h4>Can't Add Download</h4><div>Downloads that are un-resumable are running right now. These download(s) can't be resumed. Until all un-resumable downloads are finished, no new downloads can be added.</div>")
     }else{
       lobby.app.ajax("new-download.php", $(this).serializeArray(), function(d){
