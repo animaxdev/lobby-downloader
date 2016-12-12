@@ -8,17 +8,17 @@ namespace MultiRequest;
  *
  */
 class Session {
-	
+
 	/**
 	 * @var RequestsDefaults
 	 */
 	protected $requestsDefaults;
-	
+
 	/**
 	 * @var Callbacks
 	 */
 	protected $callbacks;
-	
+
 	protected $mrHandler;
 	protected $cookiesFilepath;
 	protected $lastRequest;
@@ -73,23 +73,23 @@ class Session {
 	public function stop() {
 		$this->enableAutoStart = false;
 	}
-	
+
  	public function setRequestingDelay($milliseconds) {
         	$this->requestingDelay = $milliseconds;
     	}
-    	
+
 	public function request(Request $request) {
 		if($this->requestsDelay) {
 			usleep($this->requestsDelay);
 		}
 		$request->onComplete(array($this, 'notifyRequestIsComplete'));
-		
+
 		$this->requestsDefaults->applyToRequest($request);
 		$request->setCookiesStorage($this->cookiesFilepath);
 		if($this->enableAutoReferer && $this->lastRequest) {
 			$request->setCurlOption(CURLOPT_REFERER, $this->lastRequest->getUrl());
 		}
-		
+
 		$this->mrHandler->pushRequestToQueue($request);
 		if($this->enableAutoStart) {
 			$this->mrHandler->start();

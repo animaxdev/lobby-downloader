@@ -10,14 +10,17 @@ class downloader extends \Lobby\App {
 
   public $ds = null;
 
-  public function page($p){
+  public function init(){
     $this->downloadExists();
+  }
+
+  public function page($p){
     return "auto";
   }
-  
+
   public function downloadExists($dName = ""){
     if($this->ds === null){
-      $this->ds = $this->getJSONData("downloads");
+      $this->ds = $this->data->getArray("downloads");
       if($this->ds === null){
         $this->ds = array();
       }else{
@@ -28,7 +31,7 @@ class downloader extends \Lobby\App {
       return in_array($dName, $this->ds);
     }
   }
-  
+
   /**
    * Add a download
    */
@@ -37,45 +40,47 @@ class downloader extends \Lobby\App {
      * Make an ID
      */
     $dName = md5($url . rand(0, 1000));
-    
-    $this->saveJSONData($dName, array(
+
+    $this->data->saveArray($dName, array(
       "downloaded" => "0",
       "downloadDir" => $dDir,
       "error" => "0",
-      
+
       /**
        * Estimated time to complete download
        * ETA - Estimated Time to Arrive
        * ETA is calculated on basis of average speed and not current speed
        */
       "eta" => "0",
-      
+
       "fileName" => $fileName,
-      
+
       "percentage" => "0",
       "paused" => "0",
       "resumable" => $resumable ? "1" : "0",
       "size" => 1,
-      
+
       /**
        * The current speed of download, not average speed
        */
       "speed" => "0",
+
+      "status" => "paused",
       "url" => $url
     ));
-    $this->saveJSONData("downloads", array(
+    $this->data->saveArray("downloads", array(
       $dName => 1
     ));
   }
-  
+
   public function isDownloadRunning(){
-    if ($this->getData("lastDownloadStatusCheck") < strtotime("-10 seconds")) {
+    if ($this->data->getValue("lastDownloadStatusCheck") < strtotime("-10 seconds")) {
       return false;
     }else{
       return true;
     }
   }
-  
+
   /**
    * Get the array of downloads that are in queue for download
    */
@@ -85,14 +90,14 @@ class downloader extends \Lobby\App {
      * The existing downloads
      */
     foreach($this->ds as $dName){
-      $dInfo = $this->getJSONData($dName);
+      $dInfo = $this->data->getArray($dName);
       if($dInfo['paused'] == "0" && $dInfo['percentage'] != "100"){
         $doDs[$dName] = $dInfo;
       }
     }
     return $doDs;
   }
-  
+
   public function getPHPExecutable() {
     if(defined("PHP_BINARY") && PHP_BINARY != ""){
       return PHP_BINARY;
@@ -112,48 +117,47 @@ class downloader extends \Lobby\App {
     }
     return FALSE; // not found
   }
-  
+
   public function convertToReadableSize($size){
     $base = log($size) / log(1000);
     $suffix = array("", "KB", "MB", "GB", "TB");
     $f_base = floor($base);
     return round(pow(1000, $base - floor($base)), 1) . $suffix[$f_base];
   }
-  
+
   public function secToTime($seconds) {
     $hours = floor($seconds / 3600);
     $minutes = floor(($seconds / 60) % 60);
     $seconds = $seconds % 60;
-  
+
     return $hours > 0 ? "$hours hours, $minutes minutes" : ($minutes > 0 ? "$minutes minutes, $seconds seconds" : "$seconds seconds");
-  } 
-  
+  }
+
   /**
    * Pauses all running downloads
    */
   public function pauseAllDownloads(){
     $paused = array();
     foreach($this->ds as $dName){
-      $dInfo = $this->getJSONData($dName);
+      $dInfo = $this->data->getArray($dName);
       if($dInfo['paused'] == "0" && $dInfo['percentage'] != "100"){
         $paused[] = $dName;
-        saveJSONData($dName, array(
+        $this->data->saveArray($dName, array(
           "paused" => "1"
         ));
       }
     }
     return $paused;
   }
-  
+
   public function refreshDownloads(){
     $paused = $this->pauseAllDownloads();
-    sleep(1);
     foreach($paused as $dName){
-      $this->saveJSONData($dName, array(
+      $this->data->saveArray($dName, array(
         "paused" => 0
       ));
     }
-    $this->saveData("lastDownloadStatusCheck", "1");
+    $this->data->saveValue("lastDownloadStatusCheck", "1");
   }
 
 }

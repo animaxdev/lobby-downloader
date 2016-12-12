@@ -9,13 +9,13 @@ if(!$this->isDownloadRunning()){
    * The downloads to do
    */
   $doDs = $this->getActiveDownloads();
-  
+
   if(count($doDs) !== 0){
     /**
      * We're escaping double quotes(")
      */
     $doDsJSON = json_encode($doDs);
-    
+
     $Process = new Process($this->getPHPExecutable(), array(
       "arguments" => array(
         __DIR__ . '/background-download.php',
@@ -23,9 +23,9 @@ if(!$this->isDownloadRunning()){
         $doDsJSON
       )
     ));
-    
+
     $moduleInit = isset($moduleInit);
-    
+
     $command = $Process->start(function() use ($doDs, $moduleInit){
       /**
        * If init.php is included by Module, then no need of output
@@ -37,7 +37,7 @@ if(!$this->isDownloadRunning()){
         ));
       }
     });
-    $this->saveData("lastDownloadStatusCheck", time() + 10);
+    $this->data->saveValue("lastDownloadStatusCheck", time() + 10);
 
     $this->log("Background download executed command : $command");
   }else{

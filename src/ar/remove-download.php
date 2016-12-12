@@ -3,8 +3,8 @@ $dName = \Request::postParam("downloadName", "");
 
 if($dName != ""){
   $this->refreshDownloads();
-  $this->removeData($dName);
-  saveJSONData("downloads", array(
+  $this->data->remove($dName);
+  $this->data->saveArray("downloads", array(
     $dName => false
   ));
 }

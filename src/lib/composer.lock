@@ -5,6 +5,7 @@
         "This file is @generated automatically"
     ],
     "hash": "89271d672dda99c767b5930ef145c7f4",
+    "content-hash": "dd1a8314bc3e528971d2556918006810",
     "packages": [
         {
             "name": "multirequest/multirequest",

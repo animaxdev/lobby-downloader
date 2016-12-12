@@ -9,7 +9,7 @@ namespace MultiRequest;
  *
  */
 class Queue {
-	
+
 	protected $requests = array();
 
 	public function push(Request $request) {

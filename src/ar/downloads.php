@@ -4,11 +4,12 @@
     echo ser("No Downloads", "Why don't you download some stuff ?");
   }else{
     foreach($this->ds as $dName){
-      $dInfo = $this->getJSONData($dName);
+      $dInfo = $this->data->getArray($dName);
       $percentage = $dInfo['percentage'];
+      $status = $dInfo['status'];
     ?>
       <div class='card' data-id="<?php echo $dName;?>" <?php
-      if($percentage != "100" && $dInfo['paused'] == "0"){
+      if($status === "completed" && $dInfo['paused'] == "0"){
         echo "data-active='1'";
       }
       if($dInfo["resumable"] === "0"){
@@ -29,7 +30,7 @@
                 <div class="chip red">Not A Resumable Download</div>
               <?php
               }
-              if($dInfo['error'] != "0"){
+              if($dInfo['status'] === "error"){
               ?>
                 <div>Download <b>Failed</b> - <?php echo $dInfo['error'];?></div>
               <?php
@@ -37,14 +38,15 @@
               ?>
                 <span>Download started - Establishing connection with server</span>
               <?php
-              }else if($percentage == "100"){
+              }else if($status === "completed"){
               ?>
                 <span>Download Finished</span>
               <?php
               }else{
                 $percentage = round($percentage, 2);
               ?>
-                <span class="chip">Downloaded <?php echo $this->convertToReadableSize($dInfo['downloaded']) . " of " . $this->convertToReadableSize($dInfo['size']) . " ($percentage%)";?></span>
+                <span class="chip"><?php echo $this->convertToReadableSize($dInfo['downloaded']) . " / " . $this->convertToReadableSize($dInfo['size']);?></span>
+                <span class="chip"><?php echo $percentage;?>%</span>
                 <div class="chip"><?php echo $this->convertToReadableSize($dInfo['speed']);?>/S</div>
                 <div class="chip"><?php echo $this->secToTime($dInfo['eta']);?> remaining</div>
               <?php
@@ -54,13 +56,10 @@
           </p>
           <div class="controls">
             <?php
-            if($dInfo['percentage'] == "100" || $dInfo['error'] != "0"){
-            ?>
-              <a id="reDownload" title="Re Download"></a>
-            <?php
-            }else if($dInfo['paused'] == "1"){
+            if($dInfo['paused'] == "1" || $status === "completed" || $dInfo['error'] != "0"){
             ?>
               <a id="resumeDownload" style="display: inline-block;" title="Resume Download"></a>
+              <a id="reDownload" title="Re Download"></a>
               <a id="pauseDownload" style="display: none;" title="Pause Download"></a>
             <?php
             }else{

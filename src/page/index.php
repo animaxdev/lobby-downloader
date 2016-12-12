@@ -6,7 +6,7 @@ $this->addStyle("app.css");
   <h1>Downloader</h1>
   <a id="newDownload" class="btn green">New Download</a>
   <a class="btn blue" href="<?php echo $this->u("/settings");?>"><?php _e("Settings");?></a>
-  <?php require_once $this->dir . "/src/ajax/downloads.php";?>
+  <?php require_once $this->dir . "/src/ar/downloads.php";?>
 </div>
 <div id="newDownloadDialog" hide>
   <h4>New Download</h4>
@@ -19,7 +19,7 @@ $this->addStyle("app.css");
       <span>Download To</span>
       <div class="row">
         <div class="col s8">
-        <input type="text" name="downloadPath" id="dLoc"  value="<?php echo $this->getData("downloadsDir");?>" />
+        <input type="text" name="downloadPath" id="dLoc"  value="<?php echo $this->data->getValue("downloadsDir");?>" />
         </div>
         <a id="chooseDLoc" class="btn orange col s4">Choose Path</a>
       </div>

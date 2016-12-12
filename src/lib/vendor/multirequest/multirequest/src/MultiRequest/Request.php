@@ -135,7 +135,7 @@ class Request {
 
 	protected function initCurlHandle() {
 		$this->resetRequestResultProperties();
-		
+
 		$curlHandle = curl_init($this->url);
 		$curlOptions = $this->curlOptions;
 		$curlOptions[CURLINFO_HEADER_OUT] = true;
@@ -221,7 +221,7 @@ class Request {
 		if (is_null($contentLength) || $contentLength == 0) {
 			$this->responseHeaders = mb_substr($responseData, 0, curl_getinfo($curlHandle, CURLINFO_HEADER_SIZE));
 			$this->responseContent = mb_substr($responseData, curl_getinfo($curlHandle, CURLINFO_HEADER_SIZE));
-			
+
 		} else {
 			$this->responseHeaders = mb_substr($responseData, 0, mb_strlen($responseData) - $contentLength);
 			$this->responseContent = mb_substr($responseData, mb_strlen($responseData) - $contentLength);
@@ -278,7 +278,7 @@ class Request {
 		}
 		else {
 			$responseCode = $this->getCode();
-			$successCodes = array(200, 204, 206);
+			$successCodes = array(200, 204);
 			if(!in_array($responseCode, $successCodes)) {
 				return new FailedResponse('Response failed with code "' . $responseCode . '"');
 			}
